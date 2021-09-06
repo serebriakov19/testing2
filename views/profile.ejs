@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <%- partial('./partials/components') %>
+</head>
+<body>
+<% if (role === 'student') { %>
+    <%- partial('./partials/studentNavbar') %>
+<% } else { %>
+    <%- partial('./partials/teacherNavbar') %>
+<% } %>
+<br>
+<h1 align="center"><%= title %></h1>
+<br>
+<form class="center">
+    <div class="row form-group">
+        <div class="col">
+            <h5><label class="form-check-label">First name</label></h5>
+            <input type="text" class="form-control" id="firstName" placeholder="Enter first name" required value="<%= user.firstName %>">
+        </div>
+        <div class="col">
+            <h5><label class="form-check-label">Last name</label></h5>
+            <input type="text" class="form-control" id="lastName" placeholder="Enter last name" required value="<%= user.lastName %>">
+        </div>
+    </div>
+    <div class="form-group">
+        <h5><label class="form-check-label">Login</label></h5>
+        <input type="text" class="form-control" id="login" placeholder="Enter login" required value="<%= user.login %>">
+    </div>
+    <div class="form-group">
+        <h5><label class="form-check-label">Password</label></h5>
+        <input type="password" class="form-control" id="passwd" placeholder="Enter password" required value="<%= user.password %>">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="showPass" onclick="showPassword()">
+            <label for="showPass" class="form-check-label">Show Password</label>
+        </div>
+    </div>
+    <div>
+        <br><input type="submit" class="btn btn-primary" onclick="send()" value="Update profile">
+    </div>
+</form>
+<script>
+    function showPassword() {
+        let x = document.getElementById("passwd");
+        if (x.type === "password") {
+            x.type = "text";
+        } else {
+            x.type = "password";
+        }
+    }
+
+    function checkValidation() {
+        let filledUp = true;
+        $("input[type='text']").each(function (index, element) {
+            if (!($(element).val())) {
+                filledUp = false;
+            }
+        })
+        if (!$("input[type='password']").val()) {
+            filledUp = false;
+        }
+        return filledUp;
+    }
+
+    function send() {
+        if (checkValidation()) {
+            $.post(`/profile`, {
+                firstName: $('#firstName').val(),
+                lastName: $('#lastName').val(),
+                login: $('#login').val(),
+                password: $('#passwd').val(),
+            })
+                .done(function () {
+                    window.location.href = "/";
+                })
+                .fail(function (err) {
+                    alert(err.responseText);
+                })
+                .always(function () {
+                });
+        }
+    }
+</script>
+</body>
+</html>

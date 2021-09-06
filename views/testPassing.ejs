@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <%- partial('./partials/components') %>
+</head>
+<body>
+<% if (role === 'student') { %>
+    <%- partial('./partials/studentNavbar') %>
+<% } else { %>
+    <%- partial('./partials/teacherNavbar') %>
+<% } %>
+<br>
+<h1><%= title %></h1>
+<br>
+<form>
+    <h5 class="input-group-prepend">
+        <label class="input-group-text">Subject: <%= test.subject %></label>
+        <label class="input-group-text">Test: <%= test.name %></label>
+    </h5>
+    <% for (let i = 0; i < test.questions.length; i++) { %>
+        <div class="checkInput">
+            <h5 class="input-group-prepend">
+                <label class="input-group-text"><%= i + 1 %>. </label>
+                <label class="input-group-text">  <%= test.questions[i].question %></label>
+            </h5>
+            <% for (let j = 0; j < test.questions[i].answers.length; j++) { %>
+                <p style="width: 1750px;" class="answers form-check input-group-sm ml-auto">
+                    <input type="checkbox" class="form-check-input">
+                    <label class="input-group-text w-25"><%= test.questions[i].answers[j].answer %></label>
+                </p>
+            <% } %>
+        </div>
+    <% } %>
+    <% if (role === 'student') { %>
+        <input type="button" value="Send test" class="btn btn-primary" onclick="sendTest()">
+    <% } %>
+</form>
+<footer>
+    <h6 align="right">Version: <%= test.version %></h6>
+    <h6 align="right">Author: <%= test.author.name %></h6>
+</footer>
+<script type="text/javascript">
+    function checkValidation() {
+        let hasCorrectAnswer = true;
+        $('.checkInput').each(function (index, element) {
+            let children = $(this).children();
+            let checked = false;
+            $(children).filter(".answers").each(function (index, element) {
+                if ($(element).children().first().is(':checked')) {
+                    checked = true;
+                    if ($(element).parent().children().last().is(":contains('Mark')")) {
+                        $(element).parent().children().last().remove();
+                    }
+                }
+            })
+            if (!checked) {
+                hasCorrectAnswer = false;
+                if (!($(element).last().is(":contains('Mark')"))) {
+                    $(element).append('<label class="alert alert-danger">Mark a correct answer</label>');
+                }
+            }
+        })
+        return hasCorrectAnswer;
+    }
+
+    function sendTest() {
+        if (checkValidation()) {
+            let answers = [];
+            $(".checkInput").each(function (index, element) {
+                let oneQuestionAnswers = [];
+                let children = $(this).children();
+                $(children).filter(".answers").each(function (index, element) {
+                    oneQuestionAnswers.push($(element).children().first().is(':checked'));
+                });
+                answers.push(oneQuestionAnswers);
+            })
+            console.log(answers);
+            $.post(`/testPassing/${window.location.pathname.split('/')[2]}`, {data: JSON.stringify(answers)})
+                .done(function (mark) {
+                    if (mark) {
+                        alert("Test passed, you did right " + mark);
+                        window.location.href = "/";
+                    } else {
+                        alert("Test dis not passed, please try again later")
+                    }
+                })
+                .fail(function (err) {
+                    alert("Test did not passed, because" + err.message);
+                })
+                .always(function () {
+                });
+        }
+    }
+</script>
+</body>
+</html>
+
+
+
+

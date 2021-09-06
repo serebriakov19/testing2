@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <%- partial('./partials/components') %>
+</head>
+<body>
+<h1 align="center"><%= title %></h1>
+<form class="center">
+    <div class="form-group">
+        <h5><label class="form-check-label">Login</label></h5>
+        <input type="text" class="form-control" id="login" placeholder="Enter login" required>
+    </div>
+    <div class="form-group">
+        <h5><label class="form-check-label">Password</label></h5>
+        <input type="password" class="form-control" id="passwd" placeholder="Enter password" required>
+    </div>
+    <h5>Choose your character</h5>
+    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+        <label class="btn btn-secondary active">
+            <input type="radio" name="radios" id="student" autocomplete="off" checked> As a student
+        </label>
+        <label class="btn btn-secondary">
+            <input type="radio" name="radios" id="teacher" autocomplete="off"> As a teacher
+        </label>
+    </div>
+    <div>
+        <br><input type="submit" class="btn btn-primary" value="Login" onclick="send()">
+    </div>
+</form>
+<h6 class="center" align="right">Don't have a profile?<br> <a href="/register" class="btn btn-secondary btn-sm active" role="button" aria-pressed="true">Register now</a></h6>
+<script>
+    function checkValidation() {
+        let filledUp = true;
+        if (!$("input[type='text']").val()) {
+            filledUp = false;
+        }
+        if (!$("input[type='password']").val()) {
+            filledUp = false;
+        }
+        return filledUp;
+    }
+
+    function send() {
+        if (checkValidation()) {
+            let role = $('#student').is(':checked') ? 'student' : 'teacher';
+            $.post(`/login`, {
+                login: $('#login').val(),
+                password: $('#passwd').val(),
+                role: role
+            })
+                .done(function (data) {
+                    alert("Hello, " + data);
+                    window.location.href = "/";
+                })
+                .fail(function (err) {
+                    alert(err.responseText);
+                })
+                .always(function () {
+                });
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <%- partial('./partials/components') %>
+</head>
+<body>
+<%- partial('./partials/teacherNavbar') %>
+<br>
+<h1><%= title %></h1>
+<br><h5><a href="/page/read/<%= test.id %>" class="btn btn-dark btn-sm" role="button" aria-pressed="true">Read</a>
+    <a href="/test/delete/<%= test.id %>" class="btn btn-outline-danger btn-sm bg-dark" role="button" aria-pressed="true">Delete</a></h5>
+<form class="myForm" onsubmit="sendTest(this);return false;">
+    <h5 class="input-group-prepend">
+        <input type="text" class="form-control" placeholder="Enter the subject name" required value="<%= test.subject %>">
+        <input type="text" class="form-control" placeholder="Enter the test name" required value="<%= test.name %>">
+    </h5>
+    <div class="checkInput">
+        <h5 class="input-group-prepend">
+            <label class="input-group-text">1</label>
+            <input type="text" class="form-control" placeholder="Enter the question here" required>
+        </h5>
+        <p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">
+            <input type="checkbox" class="form-check-input input-group-text">
+            <input type="text" class="form-control w-25 p-3" placeholder="Enter the answer" required>
+        </p>
+        <p style="text-indent:50px">
+            <input type="button" class="btn-secondary btn-xs" value="Add answer" onclick="addAnswer(this)">
+        </p>
+    </div>
+    <p>
+        <input type="button" class="btn btn-secondary btn-sm" value="Add question" onclick="addQuestion(this);">
+    </p>
+    <input type="submit" class="btn btn-primary" value="Update test" onclick="sendTest()">
+</form>
+<footer>
+    <h6 align="right">Version <%= test.version %></h6>
+</footer>
+<script type="text/javascript">
+    let test = {
+        subject: '',
+        name: '',
+        questions: [{
+            question: '',
+            answers: []
+        }]
+    };
+
+    function numerateQuestions() {
+        $('label.input-group-text').each(function (index, element) {
+            $(element).text(++index);
+        })
+    }
+
+    function addAnswer(butt) {
+        $(butt).parent().before('<p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">' +
+            '<input type="checkbox" class="form-check-input input-group-text"> ' +
+            '<input type="text" class="form-control w-25 p-3" placeholder="Enter the variant" required>' +
+            '<input class="btn btn-light btn-sm" type="button" value="×" onclick="removeAnswer(this)">' +
+            '</p>');
+    }
+
+    function removeAnswer(butt) {
+        $(butt).parent().remove();
+    }
+
+    function addQuestion(butt) {
+        $(butt).parent().before('<div class="checkInput">' +
+            `<h5 class="input-group-prepend"><label class="input-group-text">1</label><input type="text" class="form-control" placeholder="Enter the question here" required><input class="btn btn-light btn-sm" type="button" value="×" onclick="removeQuestion(this)"></h5>` +
+            '<p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">' +
+            '<input type="checkbox" class="form-check-input input-group-text">' +
+            '<input type="text" class="form-control w-25 p-3" placeholder="Enter the answer" required>' +
+            '</p>' +
+            '<p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">' +
+            '<input type="checkbox" class="form-check-input input-group-text">' +
+            '<input type="text" class="form-control w-25 p-3" placeholder="Enter the answer" required>' +
+            '</p>' +
+            '<p style="text-indent:50px">' +
+            '<input type="button" class="btn-secondary btn-xs" value="Add variant" onclick="addAnswer(this)">' +
+            '</p>' +
+            '</div>');
+        test.questions.push({
+            question: '',
+            answers: []
+        });
+        numerateQuestions();
+    }
+
+    function removeQuestion(butt) {
+        $(butt).parent().parent().remove();
+        test.questions.pop();
+        numerateQuestions();
+    }
+
+    function checkValidation() {
+        let hasCorrectAnswer = true;
+        let filledUp = true;
+        $('.checkInput').each(function (index, element) {
+            let children = $(this).children();
+            let checked = false;
+            $(children).filter(".answers").each(function (index, element) {
+                if ($(element).children().first().is(':checked')) {
+                    checked = true;
+                    if ($(element).parent().children().last().is(":contains('Mark')")) {
+                        $(element).parent().children().last().remove();
+                    }
+                }
+            })
+            if (!checked) {
+                hasCorrectAnswer = false;
+                if (!($(element).last().is(":contains('Mark')"))) {
+                    $(element).append('<label class="alert alert-danger">Mark a correct answer</label>');
+                }
+            }
+        })
+        $("input[type='text']").each(function (index, element) {
+            if (!($(element).val())) {
+                filledUp = false;
+            }
+        })
+        return hasCorrectAnswer && filledUp;
+    }
+
+    function sendTest(form) {
+        if (checkValidation()) {
+            form.submit();
+            test.subject = $('.myForm').children().first().children().first().val();
+            test.name = $('.myForm').children().first().children().last().val();
+            $('.checkInput').each(function (index, element) {
+                let divIndex = index;
+                let children = $(this).children();
+                test.questions[divIndex].question = $(element).children().first().children().first().next().val();
+                $(children).filter(".answers").each(function (index, element) {
+                    test.questions[divIndex].answers.push({
+                        correct: $(element).children().first().is(':checked'),
+                        answer: $(element).children().first().next().val()
+                    });
+                })
+            })
+            console.log(test);
+            $.get(`/test/update/${window.location.pathname.split('/')[3]}`, {data: JSON.stringify(test)})
+                .done(function () {
+                    alert("Test updated");
+                    window.location.href = '/';
+                })
+                .fail(function (err) {
+                    alert("Test doesnt updated, because" + err.message);
+                })
+                .always(function () {
+                });
+        }
+    }
+
+    $.get(`/test/${window.location.pathname.split('/')[3]}`)
+        .done(function (data) {
+            for (let i = 0; i < data.questions.length; i++) {
+                if (i >= 1) {
+                    $('div').last().after('<div class="checkInput">' +
+                        '<h5 class="input-group-prepend"><label class="input-group-text">1</label><input type="text" class="form-control" placeholder="Enter the question here" required><input class="btn btn-light btn-sm" type="button" value="×" onclick="removeQuestion(this)"></h5>' +
+                        '<p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">' +
+                        '<input type="checkbox" class="form-check-input input-group-text">' +
+                        '<input type="text" class="form-control w-25 p-3" placeholder="Enter the answer" required></p>' +
+                        '<p style="text-indent:50px">' +
+                            '<input type="button" class="btn-secondary btn-xs" value="Add answer" onclick="addAnswer(this)">' +
+                        '</p>' +
+                        '</div>');
+                    test.questions.push({
+                        question: '',
+                        answers: []
+                    });
+                }
+                $('div').last().children().first().children().first().next().val(data.questions[i].question);
+                for (let j = 0; j < data.questions[i].answers.length; j++) {
+                    if (j === 1 && j < 2) {
+                        $('div').last().children().last().prev().after('<p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">' +
+                            '<input type="checkbox" class="form-check-input input-group-text">' +
+                            '<input type="text" class="form-control w-25 p-3" placeholder="Enter the answer" required>' +
+                            '</p>');
+                    }
+                    if (j >= 2) {
+                        $('div').last().children().last().prev().after('<p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">' +
+                            '<input type="checkbox" class="form-check-input input-group-text">' +
+                            '<input type="text" class="form-control w-25 p-3" placeholder="Enter the answer" required>' +
+                            '<input class="btn btn-light btn-sm" type="button" value="×" onclick="removeAnswer(this)">' +
+                            '</p>');
+                    }
+                    if (data.questions[i].answers[j].correct) {
+                        $('div').last().children().last().prev().children().first().prop("checked", "true");
+                    }
+                    $('div').last().children().last().prev().children().first().next().val(data.questions[i].answers[j].answer)
+                }
+            }
+            numerateQuestions();
+        })
+        .fail(function (err) {
+            alert("Cannot read test " + err.message);
+        })
+        .always(function () {
+        });
+</script>
+</body>
+</html>
+
+
+
+

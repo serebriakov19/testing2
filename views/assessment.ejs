@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <%- partial('./partials/components') %>
+</head>
+<body>
+<%- partial('./partials/teacherNavbar') %>
+<br>
+<h1 align="center"><%= title %></h1>
+<br>
+<h4>Test: <%= test.name %></h4>
+<h4>Subject: <%= test.subject %></h4>
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">№</th>
+        <th scope="col">Name</th>
+        <th scope="col">Date</th>
+        <th scope="col">Assessment</th>
+    </tr>
+    </thead>
+    <tbody>
+    <% for (let i = 0; i < testsList.length; i++) { %>
+        <tr>
+            <th scope="row"><%= i + 1 %></th>
+            <td><%= testsList[i].student.name %></td>
+            <td><%= testsList[i].date.normalDate %></td>
+            <td><%= testsList[i].mark %></td>
+        </tr>
+    <% } %>
+    </tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><%= title %></title>
+    <%- partial('./partials/components') %>
+</head>
+<body>
+<%- partial('./partials/teacherNavbar') %>
+<br>
+<h1><%= title %></h1>
+<br><h5><a href="/page/update/<%= test.id %>" class="btn btn-outline-success btn-sm bg-dark" role="button" aria-pressed="true">Update</a>
+    <a href="/test/delete/<%= test.id %>" class="btn btn-outline-danger btn-sm bg-dark" role="button" aria-pressed="true">Delete</a></h5>
+<form>
+    <h5 class="input-group-prepend">
+        <input type="text" class="form-control" placeholder="Enter the subject name" required value="Subject: <%= test.subject %>" disabled>
+        <input type="text" class="form-control" placeholder="Enter the test name" required value="Test: <%= test.name %>" disabled>
+    </h5>
+    <div>
+        <h5 class="input-group-prepend">
+            <label class="input-group-text">1</label>
+            <input type="text" class="form-control" placeholder="Enter the question here" required disabled>
+        </h5>
+        <p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">
+            <input type="checkbox" class="form-check-input input-group-text" disabled>
+            <input type="text" class="form-control w-25 p-3" placeholder="Enter the answer" required disabled>
+        </p>
+    </div>
+</form>
+<footer>
+    <h6 align="right">Version <%= test.version %></h6>
+</footer>
+<script type="text/javascript">
+    $.get(`/test/${window.location.pathname.split('/')[3]}`)
+        .done(function (data) {
+            for (let i = 0; i < data.questions.length; i++) {
+                if (i >= 1) {
+                    $('div').last().after('<div>' +
+                        '<h5 class="input-group-prepend"><label class="input-group-text">1</label><input type="text" class="form-control" placeholder="Enter the question here" required disabled></h5>' +
+                    '<p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">' +
+                        '<input type="checkbox" class="form-check-input input-group-text" disabled>' +
+                            '<input type="text" class="form-control w-25 p-3" placeholder="Enter the answer" required disabled></p>' +
+                '</div>')
+                }
+                $('div').last().children().first().children().first().text((i + 1) + ". ");
+                $('div').last().children().first().children().last().val(data.questions[i].question);
+                for (let j = 0; j < data.questions[i].answers.length; j++) {
+                    if (j >= 1) {
+                        $('div').last().children().last().after('<p style="width: 1750px;" class="answers input-group-prepend input-group-sm ml-auto">' +
+                            '<input type="checkbox" class="form-check-input input-group-text" disabled>' +
+                        '<input type="text" class="form-control w-25 p-3" placeholder="Enter the answer" required disabled>' +
+                        '</p>');
+                    }
+                    if (data.questions[i].answers[j].correct) {
+                        $('div').last().children().last().children().first().prop("checked", "true");
+                    }
+                    $('div').last().children().last().children().last().val(data.questions[i].answers[j].answer)
+                }
+            }
+        })
+        .fail(function (err) {
+            alert("Cannot read test " + err.message);
+        })
+        .always(function () {
+        });
+</script>
+</body>
+</html>
+
+
+
+
+
